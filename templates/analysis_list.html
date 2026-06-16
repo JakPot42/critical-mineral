@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis History — Critical Mineral Monitor{% endblock %}
+
+{% block content %}
+<h1>Analysis History</h1>
+<p style="color:var(--muted); margin-bottom:1.5rem;">All past analyses stored in this session.</p>
+
+{% if analyses %}
+<div class="card" style="padding:0;">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Mineral</th>
+        <th>Mode</th>
+        <th>Date (UTC)</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in analyses %}
+      <tr>
+        <td style="color:var(--muted); font-size:0.82rem;">{{ a.id }}</td>
+        <td style="font-weight:600;">{{ a.mineral_name | capitalize }}</td>
+        <td>
+          <span style="font-size:0.75rem; color:{{ '#fbbf24' if a.demo_mode else '#4ade80' }};">
+            {{ 'DEMO' if a.demo_mode else 'LIVE' }}
+          </span>
+        </td>
+        <td style="font-size:0.8rem; color:var(--muted);">{{ a.created_at[:16] }}</td>
+        <td><a href="/result/{{ a.id }}" class="btn btn-outline btn-sm">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <p style="color:var(--muted);">No analyses yet. <a href="/" style="color:var(--accent);">Run one now</a>.</p>
+</div>
+{% endif %}
+
+<div style="margin-top:1rem;">
+  <a href="/" class="btn btn-outline btn-sm">← New Analysis</a>
+</div>
+{% endblock %}

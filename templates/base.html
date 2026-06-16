@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Critical Mineral Monitor{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #263248;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-dark: #b45309;
+      --blue: #3b82f6;
+      --red: #dc2626;
+      --green: #16a34a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    header .logo span { color: var(--text); }
+    header nav { margin-left: auto; display: flex; gap: 1.25rem; }
+    header nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    header nav a:hover { color: var(--text); }
+
+    .demo-banner {
+      background: #1c1400;
+      border-bottom: 1px solid #713f12;
+      color: #fbbf24;
+      font-size: 0.78rem;
+      padding: 0.45rem 1.5rem;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
+    h2 { font-size: 1.15rem; font-weight: 600; color: var(--accent); margin-bottom: 0.75rem; }
+    h3 { font-size: 0.95rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.5rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { background: var(--surface2); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #1e293b; color: var(--text); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .badge-critical { background: #450a0a; color: #f87171; border: 1px solid #7f1d1d; }
+    .badge-high     { background: #431407; color: #fb923c; border: 1px solid #7c2d12; }
+    .badge-medium   { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
+    .badge-low      { background: #052e16; color: #4ade80; border: 1px solid #14532d; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.25rem;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #1c1400; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-sm { padding: 0.35rem 0.85rem; font-size: 0.82rem; }
+
+    .error-box {
+      background: #450a0a;
+      border: 1px solid #7f1d1d;
+      border-radius: 5px;
+      padding: 0.85rem 1.1rem;
+      color: #fca5a5;
+      font-size: 0.88rem;
+      margin-bottom: 1.25rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+
+    select, input[type="text"] {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      padding: 0.55rem 0.85rem;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    select:focus, input[type="text"]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .source-note { font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; }
+  </style>
+  {% block extra_style %}{% endblock %}
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">⬡ <span>Critical Mineral</span> Monitor</a>
+  <nav>
+    <a href="/">New Analysis</a>
+    <a href="/analyses">History</a>
+    <a href="/demo/neodymium">Demo: Nd</a>
+    <a href="/demo/cobalt">Demo: Co</a>
+  </nav>
+</header>
+
+{% if demo_mode %}
+<div class="demo-banner">
+  ⚠ DEMO — All data from public sources (USGS MCS 2024, JPL NHATS, NASA SBDB). Not classified. API key required for live Claude briefs.
+</div>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  Data: USGS MCS 2024 · JPL NHATS · NASA SBDB · Claude Haiku (strategic synthesis) &nbsp;|&nbsp; JakPot42 portfolio project
+</footer>
+
+</body>
+</html>

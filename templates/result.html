@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mineral.full_name }} — Critical Mineral Analysis{% endblock %}
+
+{% block extra_style %}
+<style>
+  .risk-score { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+  .risk-tier  { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .breakdown-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .breakdown-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .brief-section-head {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .brief-para { color: var(--muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 0.85rem; }
+  .ast-rank { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #1c1400; font-weight: 800; font-size: 0.78rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ast-card { display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
+  .ast-card:last-child { border-bottom: none; }
+  .dv-bar { height: 5px; border-radius: 3px; background: var(--surface2); margin-top: 4px; overflow:hidden; }
+  .dv-bar-fill { height: 100%; border-radius: 3px; background: #3b82f6; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+  <div>
+    <div style="font-size:0.78rem; color:var(--muted); margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.07em;">
+      {{ mineral.category }}
+    </div>
+    <h1>{{ mineral.full_name }} ({{ mineral.symbol }})</h1>
+    <div style="font-size:0.85rem; color:var(--muted); margin-top:0.2rem;">
+      Atomic #{{ mineral.atomic_number }} &nbsp;·&nbsp; Analysis #{{ analysis.id }} &nbsp;·&nbsp; {{ analysis.created_at[:16] }}
+    </div>
+  </div>
+  <div style="display:flex; gap:0.5rem; flex-shrink:0;">
+    <a href="/" class="btn btn-outline btn-sm">New Analysis</a>
+    <form method="post" action="/result/{{ analysis.id }}/pdf" style="display:inline;">
+      <button type="submit" class="btn btn-primary btn-sm">Download PDF</button>
+    </form>
+  </div>
+</div>
+
+<!-- Risk scorecard + suppliers -->
+<div class="grid-2">
+
+  <!-- Risk score -->
+  <div class="card" style="border-color:{{ tier_color }}33;">
+    <h3>Supply-Chain Risk Score</h3>
+    <div style="display:flex; align-items:baseline; gap:0.75rem; margin-bottom:1rem;">
+      <div class="risk-score" style="color:{{ tier_color }};">{{ analysis.risk.total | int }}</div>
+      <div>
+        <div class="risk-tier" style="color:{{ tier_color }};">{{ analysis.risk.tier }}</div>
+        <div style="font-size:0.78rem; color:var(--muted);">out of 100</div>
+      </div>
+    </div>
+
+    <div style="font-size:0.82rem;">
+      <!-- Import dependency -->
+      <div style="margin-bottom:0.7rem;">
+        <div style="display:flex; justify-content:space-between; color:var(--muted);">
+          <span>Import Dependency ({{ mineral.import_dependency_pct }}%)</span>
+          <span>{{ analysis.risk.import_score | round(1) }} / {{ analysis.risk.breakdown.import_dependency.weight }}</span>
+        </div>
+        <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:{{ (analysis.risk.import_score / analysis.risk.breakdown.import_dependency.weight * 100) | int }}%;"></div></div>
+      </div>
+      <!-- DoD criticality -->
+      <div style="margin-bottom:0.7rem;">
+        <div style="display:flex; justify-content:space-between; color:var(--muted);">
+          <span>DoD Critical Materials</span>
+          <span>{{ analysis.risk.dod_score | int }} / {{ analysis.risk.breakdown.dod_criticality.weight }}</span>
+        </div>
+        <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:{{ (analysis.risk.dod_score / analysis.risk.breakdown.dod_criticality.weight * 100) | int }}%;"></div></div>
+      </div>
+      <!-- Substitutability -->
+      <div>
+        <div style="display:flex; justify-content:space-between; color:var(--muted);">
+          <span>Substitutability ({{ mineral.substitutability | capitalize }})</span>
+          <span>{{ analysis.risk.substitutability_score }} / {{ analysis.risk.breakdown.substitutability.weight }}</span>
+        </div>
+        <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:{{ (analysis.risk.substitutability_score / analysis.risk.breakdown.substitutability.weight * 100) | int }}%;"></div></div>
+      </div>
+    </div>
+
+    <div class="source-note" style="margin-top:0.85rem;">Source: {{ mineral.source_note }}</div>
+  </div>
+
+  <!-- Top suppliers + defense apps -->
+  <div class="card">
+    <h3>Top Suppliers</h3>
+    {% for s in mineral.top_suppliers %}
+    <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding:0.3rem 0; border-bottom:1px solid var(--border);">
+      <span>{{ s.country }}</span>
+      <span style="font-weight:700; color:var(--accent);">{{ s.share_pct }}%</span>
+    </div>
+    {% endfor %}
+
+    <h3 style="margin-top:1rem;">Defense Applications</h3>
+    {% for app in mineral.defense_applications %}
+    <div style="font-size:0.82rem; color:var(--muted); padding:0.2rem 0;">• {{ app }}</div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Asteroid candidates -->
+<div class="card">
+  <h2>Near-Earth Asteroid Candidates</h2>
+  <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem;">
+    Spectral-type match to {{ mineral.full_name }} &nbsp;·&nbsp; Sorted by Δv from LEO (JPL NHATS)
+  </p>
+
+  {% if analysis.asteroids %}
+    {% for a in analysis.asteroids %}
+    <div class="ast-card">
+      <div class="ast-rank">{{ loop.index }}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:0.95rem;">{{ a.full_name }}</div>
+        <div style="font-size:0.78rem; color:var(--muted); margin-bottom:0.5rem;">
+          {{ a.spectral_class }}-type &nbsp;·&nbsp;
+          {% if a.diameter_km %}⌀ {{ "%.3f" | format(a.diameter_km) }} km &nbsp;·&nbsp;{% endif %}
+          {% if a.estimated_mass_mt %}{{ "{:,.0f}".format(a.estimated_mass_mt) }} Mt est.{% endif %}
+        </div>
+        <div style="font-size:0.82rem;">
+          <span style="color:var(--muted);">Δv from LEO:</span>
+          <span style="font-weight:700; color:#60a5fa;">{{ "%.2f" | format(a.min_dv_km_s) }} km/s</span>
+          <div class="dv-bar" style="max-width:200px; margin-top:3px;">
+            <div class="dv-bar-fill" style="width:{{ [((a.min_dv_km_s - 4) / 8 * 100), 100] | min | int }}%;"></div>
+          </div>
+        </div>
+        <div style="font-size:0.8rem; color:var(--muted); margin-top:0.5rem;">{{ a.mineral_match_rationale }}</div>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="source-note" style="margin-top:0.5rem;">
+      Δv = minimum delta-v from LEO per JPL NHATS ({{ analysis.asteroids | length }} asteroid{{ 's' if analysis.asteroids | length != 1 else '' }} shown).
+      Mass from SBDB diameter + spectral-class bulk density (Britt et al. 2002).
+      Diameter estimated from H-magnitude where direct measurement unavailable (Fowler &amp; Chillemi 1992).
+    </div>
+  {% else %}
+    <div style="color:var(--muted); font-size:0.88rem; padding:0.75rem 0;">
+      No spectral-matched NHATS candidates identified for this mineral in the current accessibility window.
+      <br>This is expected for minerals with limited spectral-type associations (e.g., niche refractory metals).
+    </div>
+  {% endif %}
+</div>
+
+<!-- Strategic brief -->
+<div class="card">
+  <h2>Strategic Brief</h2>
+  {% if demo_mode %}
+  <div style="font-size:0.75rem; color:var(--accent); margin-bottom:0.85rem;">
+    DEMO MODE — Brief pre-generated from USGS MCS 2024 and public DoD sources. Set ANTHROPIC_API_KEY on Render for live generation.
+  </div>
+  {% endif %}
+
+  {% for para in brief_paragraphs %}
+    {% if para == para.upper() and para | length < 50 %}
+      <div class="brief-section-head">{{ para }}</div>
+    {% else %}
+      <p class="brief-para">{{ para }}</p>
+    {% endif %}
+  {% endfor %}
+</div>
+
+{% endblock %}

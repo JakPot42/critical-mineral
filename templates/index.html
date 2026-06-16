@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Critical Mineral Space Resource Intelligence Monitor{% endblock %}
+
+{% block content %}
+<h1>Critical Mineral Space Resource Intelligence Monitor</h1>
+<p style="color: var(--muted); margin-bottom: 1.75rem;">
+  Maps US supply-chain vulnerability against near-Earth asteroid candidates.
+  Input a critical mineral → terrestrial risk profile + top-3 NEA candidates + strategic brief.
+</p>
+
+{% if error %}
+<div class="error-box">{{ error }}</div>
+{% endif %}
+
+<div class="grid-2">
+
+  <!-- Analysis form -->
+  <div class="card">
+    <h2>Run Analysis</h2>
+    <form method="post" action="/analyze">
+      <label style="display:block; margin-bottom:0.5rem; font-size:0.85rem; color:var(--muted);">Select Mineral</label>
+      <select name="mineral" required style="margin-bottom:1rem;">
+        <option value="" disabled selected>— choose a mineral —</option>
+        {% for m in minerals %}
+        <option value="{{ m }}">{{ m | capitalize }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Generate Report</button>
+    </form>
+
+    <div style="margin-top:1.25rem;">
+      <p style="font-size:0.78rem; color:var(--muted); margin-bottom:0.5rem;">DEMO ANALYSES (instant — no API calls)</p>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        {% for dm in demo_minerals %}
+        <a href="/demo/{{ dm }}" class="btn btn-outline btn-sm">{{ dm | capitalize }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- What this tool does -->
+  <div class="card">
+    <h2>How It Works</h2>
+    <div style="font-size:0.88rem; color:var(--muted); line-height:1.7;">
+      <p style="margin-bottom:0.75rem;">
+        <strong style="color:var(--text);">1. Terrestrial risk</strong> — Import dependency, substitutability, and DoD
+        criticality from USGS Mineral Commodity Summaries 2024. Deterministic scoring, citable sources.
+      </p>
+      <p style="margin-bottom:0.75rem;">
+        <strong style="color:var(--text);">2. Asteroid candidates</strong> — Spectral-type matching against NASA SBDB
+        catalog, cross-referenced with JPL NHATS delta-v accessibility data. Sorted by delta-v (lower = easier to reach).
+      </p>
+      <p>
+        <strong style="color:var(--text);">3. Strategic brief</strong> — Claude Haiku synthesizes both into a
+        one-page DoD-audience assessment: situation, defense exposure, space hedge, near-term recommendations.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Catalog overview -->
+<div class="card">
+  <h2>Mineral Catalog (15 minerals · USGS MCS 2024)</h2>
+  <p style="font-size:0.78rem; color:var(--muted); margin-bottom:0.85rem;">All 50 minerals on the USGS Critical Minerals list with spectral-class asteroid matches.</p>
+  <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+    {% for m in minerals %}
+    <form method="post" action="/analyze" style="display:inline;">
+      <button type="submit" name="mineral" value="{{ m }}" class="btn btn-outline btn-sm">{{ m | capitalize }}</button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+
+{% if recent %}
+<div class="card">
+  <h2>Recent Analyses</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Mineral</th><th>Mode</th><th>Date</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for a in recent %}
+      <tr>
+        <td style="color:var(--muted);">{{ a.id }}</td>
+        <td>{{ a.mineral_name | capitalize }}</td>
+        <td><span style="font-size:0.75rem; color:var(--muted);">{{ 'DEMO' if a.demo_mode else 'LIVE' }}</span></td>
+        <td style="font-size:0.78rem; color:var(--muted);">{{ a.created_at[:16] }}</td>
+        <td><a href="/result/{{ a.id }}" class="btn btn-outline btn-sm">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
