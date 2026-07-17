@@ -106,7 +106,7 @@ main.py               FastAPI routes, Jinja rendering, lifespan seed
 ## Key Architecture Decisions
 
 **Why NASA NHATS instead of computing delta-v ourselves:**
-NHATS (Near-Earth Object Human Space Flight Accessible Targets Study) provides precomputed delta-v from LEO to each NHATS object using optimal transfer trajectory databases. Recomputing this from orbital elements requires a full numerical optimizer — the same trap as implementing SGP4 from scratch in P14. NASA did the hard part; we use the result.
+NHATS (Near-Earth Object Human Space Flight Accessible Targets Study) provides precomputed delta-v from LEO to each NHATS object using optimal transfer trajectory databases. Recomputing this from orbital elements requires a full numerical optimizer — the same trap as implementing SGP4 from scratch. NASA did the hard part; we use the result.
 
 **Why delta-v instead of distance:**
 Distance is intuitive but misleading for mission planning. A nearby asteroid in a high-inclination orbit can require more energy to reach than a more distant one in a low-eccentricity, low-inclination orbit. Delta-v (km/s from LEO) is the right metric for mission accessibility.
